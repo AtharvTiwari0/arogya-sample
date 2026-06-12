@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArogyaFlow | Intelligent Clinical Schedule Console</title>
+  <meta name="description" content="Clinical administration and patient appointment scheduling system. Features real-time slot conflict resolution, secure field validations, and a fluid admin roster.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --color-primary: #0f766e; /* Deep Teal */
+      --color-primary-hover: #115e59;
+      --color-accent: #10b981; /* Emerald/Mint */
+      --color-accent-light: #ecfdf5;
+      --color-warning: #f59e0b; /* Amber */
+      --color-danger: #ef4444; /* Rose */
+      --color-danger-light: #fef2f2;
+      --color-bg-base: #f8fafc; /* Very light slate gray */
+      --color-bg-card: #ffffff;
+      --color-border: #e2e8f0;
+      --color-text-dark: #0f172a; /* Slate 900 */
+      --color-text-muted: #64748b; /* Slate 500 */
+      --font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+      --transition-fast: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-bg-base);
+      color: var(--color-text-dark);
+      font-family: var(--font-family);
+      line-height: 1.5;
+      padding-bottom: 80px;
+    }
+
+    /* Container layout */
+    .app-container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Dashboard Header */
+    header {
+      background-color: var(--color-bg-card);
+      border-bottom: 1px solid var(--color-border);
+      padding: 20px 0;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: -0.5px;
+      color: var(--color-primary);
+    }
+
+    .brand-title span {
+      color: var(--color-text-muted);
+      font-weight: 400;
+      font-size: 1rem;
+    }
+
+    .live-status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--color-accent-light);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.8rem;
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--color-accent);
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .pulse-dot::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--color-accent);
+      border-radius: 50%;
+      animation: statusPulse 1.5s infinite;
+    }
+
+    /* Main Console Grid */
+    .console-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 1.7fr;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .card {
+      background-color: var(--color-bg-card);
+      border: 1px solid var(--color-border);
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--color-primary);
+    }
+
+    .card-body {
+      padding: 24px;
+    }
+
+    /* Patient Form Styling */
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: 500;
+      font-size: 0.85rem;
+      margin-bottom: 6px;
+      color: var(--color-text-dark);
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-muted);
+      font-size: 0.95rem;
+    }
+
+    .form-control {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      background-color: #fafbfc;
+      padding: 12px 14px 12px 42px;
+      border-radius: 8px;
+      font-family: var(--font-family);
+      font-size: 0.9rem;
+      color: var(--color-text-dark);
+      outline: none;
+      transition: var(--transition-fast);
+    }
+
+    .form-control:focus {
+      border-color: var(--color-primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.08);
+    }
+
+    /* Form Validation Feedback */
+    .form-group.success .form-control {
+      border-color: var(--color-accent);
+      background-color: rgba(16, 185, 129, 0.01);
+    }
+
+    .form-group.error .form-control {
+      border-color: var(--color-danger);
+      background-color: var(--color-danger-light);
+    }
+
+    .feedback-message {
+      font-size: 0.75rem;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .form-group.success .feedback-message {
+      color: var(--color-accent);
+      display: block;
+    }
+
+    .form-group.error .feedback-message {
+      color: var(--color-danger);
+      display: block;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* Consent Slide-down section */
+    .consent-wrapper {
+      background-color: var(--color-danger-light);
+      border: 1px solid rgba(239, 68, 68, 0.15);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: none; /* JS will slide down */
+      animation: slideDown 0.3s ease-out forwards;
+    }
+
+    .consent-header {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--color-danger);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Conflict Alert Banner */
+    .conflict-banner {
+      background-color: #fffbeb;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--color-warning);
+      padding: 14px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none; /* shown dynamically */
+      animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+    }
+
+    .conflict-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .conflict-desc {
+      font-size: 0.8rem;
+      color: #78350f;
+    }
+
+    /* Submit Button */
+    .btn-book {
+      width: 100%;
+      background-color: var(--color-primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 8px;
+      font-family: var(--font-family);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition-fast);
+    }
+
+    .btn-book:hover:not(:disabled) {
+      background-color: var(--color-primary-hover);
+      box-shadow: 0 4px 10px rgba(15, 118, 110, 0.2);
+    }
+
+    .btn-book:disabled {
+      background-color: var(--color-text-muted);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* Doctors Roster Availability Column */
+    .doctor-card-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .doc-status-item {
+      border: 1px solid var(--color-border);
+      background-color: #fafbfc;
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: var(--transition-fast);
+    }
+
+    .doc-status-item:hover {
+      border-color: var(--color-primary);
+      background-color: #fff;
+    }
+
+    .doc-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .doc-profile-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .doc-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--color-primary);
+    }
+
+    .doc-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .doc-specialty {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .doc-status-pill {
+      font-size: 0.7rem;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .doc-status-pill.active {
+      background-color: var(--color-accent-light);
+      color: var(--color-accent);
+    }
+
+    .doc-status-pill.busy {
+      background-color: var(--color-danger-light);
+      color: var(--color-danger);
+    }
+
+    /* Hourly availability blocks */
+    .hours-timeline {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .hour-block {
+      flex: 1;
+      min-width: 44px;
+      text-align: center;
+      font-size: 0.65rem;
+      padding: 6px 0;
+      border-radius: 4px;
+      border: 1px solid var(--color-border);
+      font-weight: 500;
+      transition: var(--transition-fast);
+    }
+
+    .hour-block.available {
+      background-color: var(--color-accent-light);
+      color: var(--color-accent);
+      border-color: rgba(16, 185, 129, 0.15);
+    }
+
+    .hour-block.booked {
+      background-color: #fee2e2;
+      color: #ef4444;
+      border-color: rgba(239, 68, 68, 0.15);
+    }
+
+    .hour-block.selected-slot {
+      background-color: var(--color-primary);
+      color: white;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 8px rgba(15, 118, 110, 0.3);
+    }
+
+    /* Admin Panel Ledger Section */
+    .admin-section {
+      margin-top: 40px;
+    }
+
+    .ledger-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .ledger-search {
+      position: relative;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    .ledger-search input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      font-family: var(--font-family);
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .ledger-search input:focus {
+      border-color: var(--color-primary);
+    }
+
+    .ledger-search i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-muted);
+    }
+
+    .ledger-tabs {
+      display: flex;
+      gap: 8px;
+      background-color: #f1f5f9;
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .ledger-tab {
+      background: none;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: var(--font-family);
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .ledger-tab.active {
+      background-color: white;
+      color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Ledger Table */
+    .ledger-table-wrapper {
+      background-color: white;
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: var(--shadow-sm);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th {
+      background-color: #f8fafc;
+      padding: 16px;
+      font-weight: 600;
+      color: var(--color-text-muted);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    td {
+      padding: 16px;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+      transition: var(--transition-fast);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background-color: #fafbfc;
+    }
+
+    .patient-cell {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .patient-name {
+      font-weight: 600;
+      color: var(--color-text-dark);
+    }
+
+    .patient-meta {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .badge-status {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-weight: 600;
+      display: inline-block;
+    }
+
+    .badge-status.confirmed {
+      background-color: var(--color-accent-light);
+      color: var(--color-accent);
+    }
+
+    .badge-status.pending {
+      background-color: #fffbeb;
+      color: #d97706;
+    }
+
+    .badge-status.cancelled {
+      background-color: var(--color-danger-light);
+      color: var(--color-danger);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-action {
+      background: none;
+      border: 1px solid var(--color-border);
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: var(--transition-fast);
+    }
+
+    .btn-action.confirm:hover {
+      background-color: var(--color-accent-light);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    .btn-action.cancel:hover {
+      background-color: var(--color-danger-light);
+      border-color: var(--color-danger);
+      color: var(--color-danger);
+    }
+
+    /* Alert Banner for empty results */
+    .no-results-row {
+      text-align: center;
+      padding: 40px 0;
+      color: var(--color-text-muted);
+    }
+
+    /* Keyframes */
+    @keyframes statusPulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      70% { transform: scale(1.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes alertPop {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Responsive adjustments */
+    @media(max-width: 992px) {
+      .console-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Clinical Dashboard Navigation Header -->
+  <header>
+    <div class="app-container header-content">
+      <div class="brand">
+        <div class="brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+        <h1 class="brand-title">ArogyaFlow <span>Roster Management Console</span></h1>
+      </div>
+      
+      <div class="live-status-pill">
+        <span class="pulse-dot"></span>
+        Clinic Roster Operational | Active 2026
+      </div>
+    </div>
+  </header>
+
+  <div class="app-container">
+    <!-- Main Scheduler / Roster Grid -->
+    <div class="console-grid">
+      
+      <!-- LEFT: Booking Creation Panel -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fa-regular fa-calendar-plus"></i> Secure Booking Form</h2>
+        </div>
+        <div class="card-body">
+          <form id="patient-booking-form" onsubmit="handleFormSubmission(event)" novalidate>
+            
+            <!-- Conflict Detector Alert Banner -->
+            <div class="conflict-banner" id="conflict-banner">
+              <div class="conflict-title">
+                <i class="fa-solid fa-triangle-exclamation"></i> Scheduling Conflict Detected
+              </div>
+              <div class="conflict-desc" id="conflict-message">
+                Dr. Sarah Chen is already booked for this slot. Please choose an alternative slot.
+              </div>
+            </div>
+
+            <!-- Patient Name -->
+            <div class="form-group" id="group-name">
+              <label class="form-label" for="pat-name">Patient Full Name</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-user"></i>
+                <input type="text" id="pat-name" class="form-control" placeholder="Jane Doe" required>
+              </div>
+              <span class="feedback-message" id="error-name">Invalid Name: Must contain only letters and spaces (min 3 characters).</span>
+            </div>
+
+            <div class="form-row">
+              <!-- Phone -->
+              <div class="form-group" id="group-phone">
+                <label class="form-label" for="pat-phone">Phone Number</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-phone-flip"></i>
+                  <input type="tel" id="pat-phone" class="form-control" placeholder="123-456-7890" required>
+                </div>
+                <span class="feedback-message" id="error-phone">Invalid Phone: Requires 10-digit number.</span>
+              </div>
+
+              <!-- Email -->
+              <div class="form-group" id="group-email">
+                <label class="form-label" for="pat-email">Email Address</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-envelope"></i>
+                  <input type="email" id="pat-email" class="form-control" placeholder="jane.doe@careflow.com" required>
+                </div>
+                <span class="feedback-message" id="error-email">Invalid email format.</span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <!-- Date of Birth -->
+              <div class="form-group" id="group-dob">
+                <label class="form-label" for="pat-dob">Date of Birth</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-calendar-days"></i>
+                  <input type="date" id="pat-dob" class="form-control" required>
+                </div>
+                <span class="feedback-message" id="error-dob">Birthdate cannot be set in the future.</span>
+              </div>
+
+              <!-- Doctor Selection -->
+              <div class="form-group">
+                <label class="form-label" for="select-doctor">Consulting Doctor</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-user-doctor"></i>
+                  <select id="select-doctor" class="form-control" style="padding-left: 42px;" onchange="triggerConflictCheck()" required>
+                    <option value="D-101">Dr. Sarah Chen (Cardiology)</option>
+                    <option value="D-102">Dr. Marcus Vance (Neurology)</option>
+                    <option value="D-103">Dr. Elena Rostova (Pediatrics)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parent Consent Slide-down Panel -->
+            <div class="consent-wrapper" id="minor-consent-panel">
+              <div class="consent-header">
+                <i class="fa-solid fa-shield-halved"></i> Parental Consent Required
+              </div>
+              <p style="font-size: 0.75rem; color: #7f1d1d; margin-bottom: 12px; font-weight: 500;">
+                Because the patient is under 18 years of age, you must input the name of a legal parent or guardian.
+              </p>
+              <div class="form-group" id="group-guardian" style="margin-bottom: 0;">
+                <label class="form-label" for="guardian-name" style="color: #7f1d1d;">Guardian Full Name</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-id-card"></i>
+                  <input type="text" id="guardian-name" class="form-control" placeholder="Guardian Legal Name" style="background-color: #fff;">
+                </div>
+                <span class="feedback-message" id="error-guardian">Guardian name must contain only letters (min 3 chars).</span>
+              </div>
+            </div>
+
+            <!-- Booking Time Roster Selection -->
+            <div class="form-group">
+              <label class="form-label" for="select-slot">Preferred Time Block</label>
+              <div class="input-wrapper">
+                <i class="fa-regular fa-clock"></i>
+                <select id="select-slot" class="form-control" style="padding-left: 42px;" onchange="triggerConflictCheck()" required>
+                  <option value="9:00 AM">9:00 AM - 10:00 AM</option>
+                  <option value="10:00 AM">10:00 AM - 11:00 AM</option>
+                  <option value="11:00 AM">11:00 AM - 12:00 PM</option>
+                  <option value="1:00 PM">1:00 PM - 2:00 PM</option>
+                  <option value="2:00 PM">2:00 PM - 3:00 PM</option>
+                  <option value="3:00 PM">3:00 PM - 4:00 PM</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-book" id="btn-submit-booking">
+              <i class="fa-regular fa-floppy-disk"></i> Save Appointment
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- RIGHT: Interactive Doctor Availability Grid & Live Stats -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fa-solid fa-stethoscope"></i> Doctors Active Roster</h2>
+        </div>
+        <div class="card-body">
+          <div class="doctor-card-list" id="doctor-card-list">
+            <!-- Doctor items will be rendered dynamically with real time slots -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- BOTTOM: Admin Panel Clinical Ledger -->
+    <section class="admin-section">
+      <div class="ledger-controls">
+        <div class="ledger-search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="ledger-search-input" placeholder="Search by patient name or phone..." oninput="handleLedgerFiltering()">
+        </div>
+
+        <div class="ledger-tabs" id="ledger-tabs">
+          <button class="ledger-tab active" onclick="filterLedger('all', this)">All Appointments</button>
+          <button class="ledger-tab" onclick="filterLedger('pending', this)">Pending Review</button>
+          <button class="ledger-tab" onclick="filterLedger('confirmed', this)">Confirmed</button>
+          <button class="ledger-tab" onclick="filterLedger('cancelled', this)">Cancelled</button>
+        </div>
+      </div>
+
+      <div class="ledger-table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Age Status</th>
+              <th>Doctor</th>
+              <th>Scheduled Block</th>
+              <th>Roster Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ledger-table-body">
+            <!-- Roster rows will be generated dynamically by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <!-- Footer -->
+    <footer style="margin-top: 60px; padding: 24px 0; border-top: 1px solid var(--color-border); display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--color-text-muted); flex-wrap: wrap; gap: 15px;">
+      <p>&copy; 2026 ArogyaFlow Scheduler. Designed & Developed by Atharv®.</p>
+      <p>Design Aesthetics by Antigravity</p>
+    </footer>
+  </div>
+
+  <script>
+    // ----------------------------------------------------
+    // DOCTORS LEDGER SCHEDULING DATABASE
+    // ----------------------------------------------------
+    const doctors = {
+      "D-101": {
+        name: "Dr. Sarah Chen",
+        specialty: "Cardiology & Rhythm",
+        avatar: "https://images.unsplash.com/photo-1594824813573-246434de83fb?auto=format&fit=crop&w=100&q=80",
+        status: "Available",
+        bookedSlots: ["10:00 AM", "2:00 PM"]
+      },
+      "D-102": {
+        name: "Dr. Marcus Vance",
+        specialty: "Clinical Neurology",
+        avatar: "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=100&q=80",
+        status: "Available",
+        bookedSlots: ["9:00 AM", "11:00 AM", "3:00 PM"]
+      },
+      "D-103": {
+        name: "Dr. Elena Rostova",
+        specialty: "Pediatrics & Neonatal",
+        avatar: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=100&q=80",
+        status: "Available",
+        bookedSlots: ["1:00 PM", "2:00 PM"]
+      }
+    };
+
+    // ----------------------------------------------------
+    // APPOINTMENT ROSTER LEDGER (Initial Data)
+    // ----------------------------------------------------
+    let appointments = [
+      {
+        id: "APT-801",
+        patientName: "Donald Miller",
+        phone: "555-019-2834",
+        email: "d.miller@gmail.com",
+        dob: "1978-05-12",
+        guardianName: "",
+        doctorId: "D-101",
+        timeSlot: "10:00 AM",
+        status: "confirmed"
+      },
+      {
+        id: "APT-802",
+        patientName: "Alice Watson",
+        phone: "555-321-4902",
+        email: "alice.w@yahoo.com",
+        dob: "1994-09-24",
+        guardianName: "",
+        doctorId: "D-102",
+        timeSlot: "11:00 AM",
+        status: "confirmed"
+      },
+      {
+        id: "APT-803",
+        patientName: "Bobby Henderson",
+        phone: "555-667-8901",
+        email: "parents.henderson@gmail.com",
+        dob: "2015-11-03",
+        guardianName: "Sarah Henderson",
+        doctorId: "D-103",
+        timeSlot: "2:00 PM",
+        status: "pending"
+      }
+    ];
+
+    const timeBlocksList = ["9:00 AM", "10:00 AM", "11:00 AM", "1:00 PM", "2:00 PM", "3:00 PM"];
+    let currentFilterStatus = "all";
+
+    // ----------------------------------------------------
+    // INITIALIZATION & EVENT BINDINGS
+    // ----------------------------------------------------
+    document.addEventListener("DOMContentLoaded", () => {
+      // Limit DOB selector inputs to today's date
+      const dobInput = document.getElementById("pat-dob");
+      const today = new Date().toISOString().split("T")[0];
+      dobInput.max = today;
+
+      // Event listener for birthdate age verification
+      dobInput.addEventListener("input", verifyPatientAgeConsent);
+
+      // Add instant blur validation for inputs
+      setupSecureFieldValidations();
+
+      // Render items
+      renderDoctorsRoster();
+      renderLedger();
+    });
+
+    // ----------------------------------------------------
+    // RENDER DOCTORS ROSTER WITH TIME SLOTS
+    // ----------------------------------------------------
+    function renderDoctorsRoster() {
+      const container = document.getElementById("doctor-card-list");
+      container.innerHTML = "";
+
+      Object.keys(doctors).forEach(id => {
+        const doc = doctors[id];
+        
+        // Render timeline hourly slots
+        const timelineHtml = timeBlocksList.map(slot => {
+          const isBooked = doc.bookedSlots.includes(slot);
+          const activeSelectDoctor = document.getElementById("select-doctor").value;
+          const activeSelectSlot = document.getElementById("select-slot").value;
+          const isCurrentSelectedSlot = (id === activeSelectDoctor && slot === activeSelectSlot);
+          
+          let blockClass = "hour-block available";
+          if (isBooked) blockClass = "hour-block booked";
+          if (isCurrentSelectedSlot) blockClass = "hour-block selected-slot";
+
+          return `<div class="${blockClass}">${slot}</div>`;
+        }).join('');
+
+        const docHtml = `
+          <div class="doc-status-item">
+            <div class="doc-header-row">
+              <div class="doc-profile-info">
+                <img src="${doc.avatar}" alt="${doc.name}" class="doc-avatar">
+                <div>
+                  <h4 class="doc-name">${doc.name}</h4>
+                  <span class="doc-specialty">${doc.specialty}</span>
+                </div>
+              </div>
+              <span class="doc-status-pill ${doc.status === 'Available' ? 'active' : 'busy'}">${doc.status}</span>
+            </div>
+            
+            <div style="font-size:0.75rem; font-weight:600; color:var(--color-text-muted); margin-top:4px;">Roster Timeline</div>
+            <div class="hours-timeline">
+              ${timelineHtml}
+            </div>
+          </div>
+        `;
+        container.insertAdjacentHTML("beforeend", docHtml);
+      });
+    }
+
+    // ----------------------------------------------------
+    // CONFLICT FINDER & SCHEDULING ALGORITHM
+    // ----------------------------------------------------
+    function triggerConflictCheck() {
+      const selectedDoctorId = document.getElementById("select-doctor").value;
+      const selectedSlot = document.getElementById("select-slot").value;
+      const doc = doctors[selectedDoctorId];
+      
+      const banner = document.getElementById("conflict-banner");
+      const submitBtn = document.getElementById("btn-submit-booking");
+
+      // Render timelines again to update highlights
+      renderDoctorsRoster();
+
+      if (doc.bookedSlots.includes(selectedSlot)) {
+        // Find next alternative slot
+        const alternativeSlot = timeBlocksList.find(s => !doc.bookedSlots.includes(s)) || "None available today";
+        
+        document.getElementById("conflict-message").innerHTML = `
+          <strong>${doc.name}</strong> is already booked for the <strong>${selectedSlot}</strong> block.
+          <br>Suggested alternative block: <span style="font-weight:700; text-decoration:underline; cursor:pointer;" onclick="selectAlternativeSlot('${alternativeSlot}')">${alternativeSlot}</span>.
+        `;
+        banner.style.display = "block";
+        submitBtn.disabled = true;
+      } else {
+        banner.style.display = "none";
+        submitBtn.disabled = false;
+      }
+    }
+
+    function selectAlternativeSlot(slotVal) {
+      if (slotVal === "None available today") return;
+      document.getElementById("select-slot").value = slotVal;
+      triggerConflictCheck();
+    }
+
+    // ----------------------------------------------------
+    // SECURE INPUT VALIDATION & REGEX
+    // ----------------------------------------------------
+    function setupSecureFieldValidations() {
+      // 1. Patient Name Validation
+      document.getElementById("pat-name").addEventListener("input", (e) => {
+        validateNameInput(e.target, document.getElementById("group-name"));
+      });
+
+      // 2. Phone Validation (10 digits)
+      document.getElementById("pat-phone").addEventListener("input", (e) => {
+        validatePhoneInput(e.target, document.getElementById("group-phone"));
+      });
+
+      // 3. Email Validation
+      document.getElementById("pat-email").addEventListener("input", (e) => {
+        validateEmailInput(e.target, document.getElementById("group-email"));
+      });
+
+      // 4. Guardian Name Validation
+      document.getElementById("guardian-name").addEventListener("input", (e) => {
+        validateNameInput(e.target, document.getElementById("group-guardian"));
+      });
+    }
+
+    function validateNameInput(inputEl, groupEl) {
+      // Secure check: no special chars, letters & spaces only, 3-40 chars. XSS prevention
+      const cleanVal = sanitizeInput(inputEl.value);
+      const nameRegex = /^[a-zA-Z\s]{3,40}$/;
+      
+      if (cleanVal === "" || !nameRegex.test(cleanVal)) {
+        groupEl.classList.add("error");
+        groupEl.classList.remove("success");
+        return false;
+      } else {
+        groupEl.classList.remove("error");
+        groupEl.classList.add("success");
+        return true;
+      }
+    }
+
+    function validatePhoneInput(inputEl, groupEl) {
+      // Must match standard numbers formats, e.g. 555-123-4567, or 10 digits
+      const cleaned = inputEl.value.replace(/\D/g, '');
+      if (cleaned.length === 10) {
+        groupEl.classList.remove("error");
+        groupEl.classList.add("success");
+        return true;
+      } else {
+        groupEl.classList.add("error");
+        groupEl.classList.remove("success");
+        return false;
+      }
+    }
+
+    function validateEmailInput(inputEl, groupEl) {
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (emailRegex.test(inputEl.value)) {
+        groupEl.classList.remove("error");
+        groupEl.classList.add("success");
+        return true;
+      } else {
+        groupEl.classList.add("error");
+        groupEl.classList.remove("success");
+        return false;
+      }
+    }
+
+    function verifyPatientAgeConsent() {
+      const dobVal = document.getElementById("pat-dob").value;
+      if (!dobVal) return;
+
+      const birthDate = new Date(dobVal);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      const consentPanel = document.getElementById("minor-consent-panel");
+      const guardianInput = document.getElementById("guardian-name");
+
+      if (age < 18) {
+        consentPanel.style.display = "block";
+        guardianInput.required = true;
+      } else {
+        consentPanel.style.display = "none";
+        guardianInput.required = false;
+        guardianInput.value = "";
+        document.getElementById("group-guardian").classList.remove("error", "success");
+      }
+    }
+
+    function sanitizeInput(str) {
+      // Prevent XSS script injections
+      return str.replace(/[&<>"'/]/g, function (m) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#x27;',
+          '/': '&#x2F;'
+        }[m];
+      }).trim();
+    }
+
+    // Calculate age simple helper
+    function getAge(dobString) {
+      const today = new Date();
+      const birthDate = new Date(dobString);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    }
+
+    // ----------------------------------------------------
+    // FORM SUBMISSION & RECORD ADDITION
+    // ----------------------------------------------------
+    function handleFormSubmission(e) {
+      e.preventDefault();
+
+      const nameEl = document.getElementById("pat-name");
+      const phoneEl = document.getElementById("pat-phone");
+      const emailEl = document.getElementById("pat-email");
+      const dobEl = document.getElementById("pat-dob");
+      const docSelect = document.getElementById("select-doctor");
+      const slotSelect = document.getElementById("select-slot");
+      const guardianEl = document.getElementById("guardian-name");
+
+      // Validate all fields
+      const isNameValid = validateNameInput(nameEl, document.getElementById("group-name"));
+      const isPhoneValid = validatePhoneInput(phoneEl, document.getElementById("group-phone"));
+      const isEmailValid = validateEmailInput(emailEl, document.getElementById("group-email"));
+      
+      let isGuardianValid = true;
+      if (guardianEl.required) {
+        isGuardianValid = validateNameInput(guardianEl, document.getElementById("group-guardian"));
+      }
+
+      if (!isNameValid || !isPhoneValid || !isEmailValid || !isGuardianValid || !dobEl.value) {
+        alert("Please fix invalid fields highlighted in red before saving.");
+        return;
+      }
+
+      // Check conflict once more
+      const doctorId = docSelect.value;
+      const slot = slotSelect.value;
+      if (doctors[doctorId].bookedSlots.includes(slot)) {
+        alert("Roster block is currently locked by another patient record.");
+        return;
+      }
+
+      // Safe add record
+      const newAppt = {
+        id: "APT-" + Math.floor(800 + Math.random() * 200),
+        patientName: sanitizeInput(nameEl.value),
+        phone: phoneEl.value,
+        email: emailEl.value,
+        dob: dobEl.value,
+        guardianName: sanitizeInput(guardianEl.value),
+        doctorId: doctorId,
+        timeSlot: slot,
+        status: "pending"
+      };
+
+      // Add to database
+      appointments.push(newAppt);
+      // Lock slot in doctor model
+      doctors[doctorId].bookedSlots.push(slot);
+
+      // Reset Form fields
+      document.getElementById("patient-booking-form").reset();
+      document.getElementById("minor-consent-panel").style.display = "none";
+      document.querySelectorAll(".form-group").forEach(el => el.classList.remove("success", "error"));
+
+      // Refresh elements
+      triggerConflictCheck();
+      renderDoctorsRoster();
+      renderLedger();
+
+      alert("Appointment record added successfully under Review status.");
+    }
+
+    // ----------------------------------------------------
+    // CLINICAL LEDGER ADMIN LIST MANAGEMENT
+    // ----------------------------------------------------
+    function renderLedger() {
+      const tbody = document.getElementById("ledger-table-body");
+      tbody.innerHTML = "";
+
+      const searchQuery = document.getElementById("ledger-search-input").value.toLowerCase();
+
+      const filteredList = appointments.filter(appt => {
+        // Filter by Status Tab
+        const matchesStatus = currentFilterStatus === "all" || appt.status === currentFilterStatus;
+        
+        // Filter by search query
+        const matchesSearch = appt.patientName.toLowerCase().includes(searchQuery) || 
+                              appt.phone.includes(searchQuery);
+
+        return matchesStatus && matchesSearch;
+      });
+
+      if (filteredList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="no-results-row">No active schedule logs match current query.</td></tr>`;
+        return;
+      }
+
+      filteredList.forEach(appt => {
+        const doc = doctors[appt.doctorId];
+        const age = getAge(appt.dob);
+        const ageBadgeText = age < 18 ? `Minor (Age ${age})` : `Adult (Age ${age})`;
+        const ageBadgeStyle = age < 18 ? "color: var(--color-danger); font-weight:600;" : "color: var(--color-text-muted);";
+
+        let actionButtons = "";
+        if (appt.status === "pending") {
+          actionButtons = `
+            <button class="btn-action confirm" onclick="updateAppointmentStatus('${appt.id}', 'confirmed')" title="Confirm Schedule"><i class="fa-solid fa-check"></i></button>
+            <button class="btn-action cancel" onclick="updateAppointmentStatus('${appt.id}', 'cancelled')" title="Cancel Schedule"><i class="fa-solid fa-trash-can"></i></button>
+          `;
+        } else if (appt.status === "confirmed") {
+          actionButtons = `
+            <button class="btn-action cancel" onclick="updateAppointmentStatus('${appt.id}', 'cancelled')" title="Cancel Schedule"><i class="fa-solid fa-ban"></i></button>
+          `;
+        } else {
+          actionButtons = `<span style="font-size:0.75rem; color:var(--color-text-muted)">Log Locked</span>`;
+        }
+
+        const rowHtml = `
+          <tr id="row-${appt.id}">
+            <td>
+              <div class="patient-cell">
+                <span class="patient-name">${appt.patientName}</span>
+                <span class="patient-meta">${appt.phone} | ${appt.email}</span>
+                ${appt.guardianName ? `<span class="patient-meta" style="color:#b91c1c;">Gdn: ${appt.guardianName}</span>` : ''}
+              </div>
+            </td>
+            <td>
+              <span style="${ageBadgeStyle}">${ageBadgeText}</span>
+            </td>
+            <td>
+              <div style="font-weight:500;">${doc.name}</div>
+              <div style="font-size:0.75rem; color:var(--color-text-muted);">${doc.specialty}</div>
+            </td>
+            <td>
+              <span style="font-weight:600; color:var(--color-primary);">${appt.timeSlot}</span>
+            </td>
+            <td>
+              <span class="badge-status ${appt.status}">${appt.status}</span>
+            </td>
+            <td>
+              <div class="row-actions">
+                ${actionButtons}
+              </div>
+            </td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML("beforeend", rowHtml);
+      });
+    }
+
+    function updateAppointmentStatus(apptId, newStatus) {
+      const appt = appointments.find(a => a.id === apptId);
+      if (!appt) return;
+
+      const oldStatus = appt.status;
+      appt.status = newStatus;
+
+      // If cancelled, free up the doctor's time slot
+      if (newStatus === "cancelled") {
+        const doc = doctors[appt.doctorId];
+        doc.bookedSlots = doc.bookedSlots.filter(s => s !== appt.timeSlot);
+      }
+
+      // Smoothly animate transition
+      const row = document.getElementById(`row-${apptId}`);
+      if (row) {
+        row.style.opacity = "0.5";
+        setTimeout(() => {
+          renderLedger();
+          renderDoctorsRoster();
+          triggerConflictCheck();
+        }, 300);
+      }
+    }
+
+    function filterLedger(statusVal, tabEl) {
+      currentFilterStatus = statusVal;
+      
+      // Toggle tabs UI active class
+      const tabs = document.querySelectorAll(".ledger-tab");
+      tabs.forEach(t => t.classList.remove("active"));
+      tabEl.classList.add("active");
+
+      renderLedger();
+    }
+
+    function handleLedgerFiltering() {
+      renderLedger();
+    }
+  </script>
+</body>
+</html>
